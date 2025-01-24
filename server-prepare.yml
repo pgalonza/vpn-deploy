@@ -1,0 +1,46 @@
+- name: Initial VPN server configuration
+  hosts: all
+  gather_facts: false
+  become: true
+  collections:
+    - pgalonza.linux
+  roles:
+    - security
+  vars:
+    vpn_user: "{{ lookup('env', 'VPN_USER') }}"
+    sshd_port: "{{ lookup('env', 'SSHD_PORT') }}"
+    ssh_key_dir: ~/.ssh
+  tasks:
+    - name: Generate an OpenSSH keypair
+      community.crypto.openssh_keypair:
+        path: "{{ ssh_key_dir }}/{{ vpn_user }}"
+      delegate_to: localhost
+      run_once: true
+    - name: Add the VPN user
+      ansible.builtin.user:
+        name: "{{ vpn_user }}"
+        comment: VPN user
+        create_home: true
+        shell: /bin/bash
+        system: true
+    - name: Install VPN user ssh key
+      ansible.posix.authorized_key:
+        user: "{{ vpn_user }}"
+        state: present
+        key: "{{ lookup('file', '{{ ssh_key_dir }}/{{ vpn_user }}_id_rsa.pub') }}"
+    - name: "Deploy user permissions"
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ vpn_user }}"
+        content: "{{ vpn_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: "0600"
+        validate: "/usr/sbin/visudo --check --file=%s"
+    # - name: Ansible user permissions in sudoers
+    #   community.general.sudoers:
+    #     name: Ansible rules
+    #     host: ALL
+    #     commands: ALL
+    #     noexec: false
+    #     nopassword: true
+    #     user: "{{ vpn_user }}"

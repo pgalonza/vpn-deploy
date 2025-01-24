@@ -1,0 +1,27 @@
+---
+name: Initial VPN server configuration
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  prepare:
+    name: Server preparation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install Ansible dependencies
+        run: pip3 install -r ./requirements.txt
+      - name: Install collections
+        run: ansible-galaxy install -r ./requirements.yml
+      - name: Install roles of collections
+        run: |
+          curl https://raw.githubusercontent.com/pgalonza/linux-collection/main/requirements.yml --output ./collection_requirements.yml
+          ansible-galaxy install --force -r ./collection_requirements.yml
+

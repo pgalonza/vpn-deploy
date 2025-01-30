@@ -10,12 +10,21 @@
     vpn_user: "{{ lookup('env', 'VPN_USER') }}"
     sshd_port: "{{ lookup('env', 'SSHD_PORT') }}"
     ssh_key_dir: ~/.ssh
+    sshd_allow_users:
+      - "{{ lookup('env', 'VPN_USER') }}"
   tasks:
     - name: Generate an OpenSSH keypair
+      become: false
       community.crypto.openssh_keypair:
-        path: "{{ ssh_key_dir }}/{{ vpn_user }}"
+        path: "{{ ssh_key_dir }}/{{ vpn_user }}_id_rsa"
+        type: ed25519
       delegate_to: localhost
       run_once: true
+    - name: Add sudo group
+      ansible.builtin.group:
+        name: sudo
+        state: present
+        system: true
     - name: Add the VPN user
       ansible.builtin.user:
         name: "{{ vpn_user }}"
@@ -23,6 +32,9 @@
         create_home: true
         shell: /bin/bash
         system: true
+        groups:
+          - sudo
+          - docker
     - name: Install VPN user ssh key
       ansible.posix.authorized_key:
         user: "{{ vpn_user }}"
@@ -38,7 +50,7 @@
         validate: "/usr/sbin/visudo --check --file=%s"
     # - name: Ansible user permissions in sudoers
     #   community.general.sudoers:
-    #     name: Ansible rules
+    #     name: "{{ vpn_user }}"
     #     host: ALL
     #     commands: ALL
     #     noexec: false

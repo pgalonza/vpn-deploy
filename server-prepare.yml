@@ -1,17 +1,22 @@
 - name: Initial VPN server configuration
   hosts: all
-  gather_facts: false
   become: true
   collections:
     - pgalonza.linux
   roles:
+    - docker
     - security
   vars:
     vpn_user: "{{ lookup('env', 'VPN_USER') }}"
     sshd_port: "{{ lookup('env', 'SSHD_PORT') }}"
     ssh_key_dir: ~/.ssh
+    ansible_user: urahara
     sshd_allow_users:
-      - "{{ lookup('env', 'VPN_USER') }}"
+      - "{{ vpn_user }}"
+      - "{{ ansible_user }}"
+    nftables_allowed_tcp_dports":
+      - "{{ sshd_port }}"
+    nftables_allowed_udp_dports: []
   tasks:
     - name: Generate an OpenSSH keypair
       become: false
@@ -40,7 +45,7 @@
         user: "{{ vpn_user }}"
         state: present
         key: "{{ lookup('file', '{{ ssh_key_dir }}/{{ vpn_user }}_id_rsa.pub') }}"
-    - name: "Deploy user permissions"
+    - name: "VPN user permissions"
       ansible.builtin.copy:
         dest: "/etc/sudoers.d/{{ vpn_user }}"
         content: "{{ vpn_user }} ALL=(ALL) NOPASSWD:ALL\n"
@@ -48,7 +53,7 @@
         group: root
         mode: "0600"
         validate: "/usr/sbin/visudo --check --file=%s"
-    # - name: Ansible user permissions in sudoers
+    # - name: VPN user permissions
     #   community.general.sudoers:
     #     name: "{{ vpn_user }}"
     #     host: ALL

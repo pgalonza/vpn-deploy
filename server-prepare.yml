@@ -82,3 +82,36 @@
           [Unit]
           PartOf=nftables.service
           After=nftables.service
+    - name: Download setup_host_firewall.sh
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/amnezia-vpn/amnezia-client/refs/heads/dev/client/server_scripts/setup_host_firewall.sh
+        dest: /opt/amezia/setup_host_firewall.sh
+        mode: 0744
+        owner: root
+        group: root
+    - name: Copy systemd unit for run setup_host_firewall.sh
+      ansible.builtin.copy:
+        src: setup-host-firewall.service
+        dest: /etc/systemd/system/setup-host-firewall.service
+        mode: 0644
+        owner: root
+        group: root
+      notify:
+        - restart_systemd
+        - restart_setup_host_firewall
+    - name: Create systemd unit for run setup_host_firewall.sh
+      ansible.builtin.systemd:
+        name: setup-host-firewall.service
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Systemd reload daemon
+      ansible.builtin.service:
+        daemon_reload: true
+      listen: restart_systemd
+    - name: Restart setup-host-firewallapache
+      ansible.builtin.service:
+        name: setup-host-firewall.service
+        state: restarted
+      listen: restart_systemd

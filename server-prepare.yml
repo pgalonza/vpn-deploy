@@ -53,11 +53,32 @@
         group: root
         mode: "0600"
         validate: "/usr/sbin/visudo --check --file=%s"
-    # - name: VPN user permissions
-    #   community.general.sudoers:
-    #     name: "{{ vpn_user }}"
-    #     host: ALL
-    #     commands: ALL
-    #     noexec: false
-    #     nopassword: true
-    #     user: "{{ vpn_user }}"
+    - name: Create directory modules-load.d
+      ansible.builtin.file:
+        path: /etc/modules-load.d
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+    - name: Add iptables module to load at boot
+      ansible.builtin.lineinfile:
+        path: /etc/modules-load.d/ip_tables.conf
+        line: ip_tables
+        create: true
+        mode: 0644
+        owner: root
+        group: root
+    - name: Create directory docker.service.d
+      ansible.builtin.file:
+        path: /etc/systemd/system/docker.service.d/
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+    - name: Configure docker to use nftables
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/docker.service.d/override.conf
+        content: |
+          [Unit]
+          PartOf=nftables.service
+          After=nftables.service

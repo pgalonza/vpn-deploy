@@ -7,16 +7,18 @@
     - docker
     - security
   vars:
-    vpn_user: "{{ lookup('env', 'VPN_USER') }}"
-    sshd_port: "{{ lookup('env', 'SSHD_PORT') }}"
+    vpn_user: "amnezia"
+    sshd_port: "2313"
     ssh_key_dir: ~/.ssh
     ansible_user: urahara
     sshd_allow_users:
       - "{{ vpn_user }}"
       - "{{ ansible_user }}"
-    nftables_allowed_tcp_dports":
+    nftables_allowed_tcp_dports:
       - "{{ sshd_port }}"
-    nftables_allowed_udp_dports: []
+    nftables_allowed_udp_dports:
+      - 13691
+      - 13692
   tasks:
     - name: Generate an OpenSSH keypair
       become: false
@@ -53,21 +55,21 @@
         group: root
         mode: "0600"
         validate: "/usr/sbin/visudo --check --file=%s"
-    - name: Create directory modules-load.d
-      ansible.builtin.file:
-        path: /etc/modules-load.d
-        state: directory
-        mode: 0755
-        owner: root
-        group: root
-    - name: Add iptables module to load at boot
-      ansible.builtin.lineinfile:
-        path: /etc/modules-load.d/ip_tables.conf
-        line: ip_tables
-        create: true
-        mode: 0644
-        owner: root
-        group: root
+    # - name: Create directory modules-load.d
+    #   ansible.builtin.file:
+    #     path: /etc/modules-load.d
+    #     state: directory
+    #     mode: 0755
+    #     owner: root
+    #     group: root
+    # - name: Add iptables module to load at boot
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/modules-load.d/ip_tables.conf
+    #     line: ip_tables
+    #     create: true
+    #     mode: 0644
+    #     owner: root
+    #     group: root
     - name: Create directory docker.service.d
       ansible.builtin.file:
         path: /etc/systemd/system/docker.service.d/

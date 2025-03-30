@@ -82,6 +82,9 @@
           [Unit]
           PartOf=nftables.service
           After=nftables.service
+        mode: 0644
+        owner: root
+        group: root
     - name: Download setup_host_firewall.sh
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/amnezia-vpn/amnezia-client/refs/heads/dev/client/server_scripts/setup_host_firewall.sh

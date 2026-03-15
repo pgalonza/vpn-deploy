@@ -1,0 +1,12 @@
+[Unit]
+Description=Run setup_host_firewall.sh
+PartOf=nftables.service
+After=nftables.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/amnezia/setup_host_firewall.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

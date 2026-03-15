@@ -6,6 +6,8 @@
   roles:
     - docker
     - security
+  vars_files:
+    - ./project-vars.yml
   vars:
     lock_packages:
       - "docker-{{ docker_edition }}"

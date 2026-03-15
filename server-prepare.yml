@@ -1,21 +1,24 @@
 - name: Initial VPN server configuration
   hosts: all
-  gather_facts: false
   become: true
   collections:
     - pgalonza.linux
   roles:
+    - docker
     - security
-  vars:
-    vpn_user: "{{ lookup('env', 'VPN_USER') }}"
-    sshd_port: "{{ lookup('env', 'SSHD_PORT') }}"
-    ssh_key_dir: ~/.ssh
   tasks:
     - name: Generate an OpenSSH keypair
+      become: false
       community.crypto.openssh_keypair:
-        path: "{{ ssh_key_dir }}/{{ vpn_user }}"
+        path: "{{ ssh_key_dir }}/{{ vpn_user }}_id_rsa"
+        type: ed25519
       delegate_to: localhost
       run_once: true
+    - name: Add sudo group
+      ansible.builtin.group:
+        name: sudo
+        state: present
+        system: true
     - name: Add the VPN user
       ansible.builtin.user:
         name: "{{ vpn_user }}"
@@ -23,12 +26,15 @@
         create_home: true
         shell: /bin/bash
         system: true
+        groups:
+          - sudo
+          - docker
     - name: Install VPN user ssh key
       ansible.posix.authorized_key:
         user: "{{ vpn_user }}"
         state: present
         key: "{{ lookup('file', '{{ ssh_key_dir }}/{{ vpn_user }}_id_rsa.pub') }}"
-    - name: "Deploy user permissions"
+    - name: "VPN user permissions"
       ansible.builtin.copy:
         dest: "/etc/sudoers.d/{{ vpn_user }}"
         content: "{{ vpn_user }} ALL=(ALL) NOPASSWD:ALL\n"
@@ -36,11 +42,76 @@
         group: root
         mode: "0600"
         validate: "/usr/sbin/visudo --check --file=%s"
-    # - name: Ansible user permissions in sudoers
-    #   community.general.sudoers:
-    #     name: Ansible rules
-    #     host: ALL
-    #     commands: ALL
-    #     noexec: false
-    #     nopassword: true
-    #     user: "{{ vpn_user }}"
+    # - name: Create directory modules-load.d
+    #   ansible.builtin.file:
+    #     path: /etc/modules-load.d
+    #     state: directory
+    #     mode: 0755
+    #     owner: root
+    #     group: root
+    # - name: Add iptables module to load at boot
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/modules-load.d/ip_tables.conf
+    #     line: ip_tables
+    #     create: true
+    #     mode: 0644
+    #     owner: root
+    #     group: root
+    - name: Create directory docker.service.d
+      ansible.builtin.file:
+        path: /etc/systemd/system/docker.service.d/
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+    - name: Configure docker to use nftables
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/docker.service.d/override.conf
+        content: |
+          [Unit]
+          PartOf=nftables.service
+          After=nftables.service
+        mode: 0644
+        owner: root
+        group: root
+    - name: Download setup_host_firewall.sh
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/amnezia-vpn/amnezia-client/refs/heads/dev/client/server_scripts/setup_host_firewall.sh
+        dest: /opt/amezia/setup_host_firewall.sh
+        mode: 0744
+        owner: root
+        group: root
+    - name: Add shebang to setup_host_firewall.sh
+      ansible.builtin.lineinfile:
+        path: /opt/amezia/setup_host_firewall.sh
+        line: "#!/bin/bash"
+        insertbefore: BOF
+        mode: 0744
+        owner: root
+        group: root
+    - name: Copy systemd unit for run setup_host_firewall.sh
+      ansible.builtin.copy:
+        src: setup-host-firewall.service
+        dest: /etc/systemd/system/setup-host-firewall.service
+        mode: 0644
+        owner: root
+        group: root
+      notify:
+        - restart_systemd
+        - restart_setup_host_firewall
+    - name: Create systemd unit for run setup_host_firewall.sh
+      ansible.builtin.systemd:
+        name: setup-host-firewall.service
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Systemd reload daemon
+      ansible.builtin.service:
+        daemon_reload: true
+      listen: restart_systemd
+    - name: Restart setup-host-firewallapache
+      ansible.builtin.service:
+        name: setup-host-firewall.service
+        state: restarted
+      listen: restart_systemd

@@ -17,10 +17,16 @@
       - "docker-buildx-plugin"
       - "crowdsec-firewall-bouncer-{{ crowdsec_firewall_bouncer_type }}"
   pre_tasks:
+    - name: Install dnf-plugin-versionlock
+      ansible.builtin.dnf:
+        name: dnf-plugin-versionlock
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
     - name: Remove lock for packages
       community.general.dnf_versionlock:
         name: "{{ lock_packages }}"
         state: absent
+      when: ansible_facts['os_family'] == "RedHat"
   tasks:
     - name: Generate an OpenSSH keypair
       become: false
@@ -89,6 +95,7 @@
         mode: 0644
         owner: root
         group: root
+      when: ansible_facts['os_family'] == "RedHat"
     - name: Download setup_host_firewall.sh
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/amnezia-vpn/amnezia-client/refs/heads/dev/client/server_scripts/setup_host_firewall.sh
@@ -123,6 +130,7 @@
       community.general.dnf_versionlock:
         name: "{{ lock_packages }}"
         state: present
+      when: ansible_facts['os_family'] == "RedHat"
   handlers:
     - name: Systemd reload daemon
       ansible.builtin.service:

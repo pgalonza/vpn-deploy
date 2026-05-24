@@ -54,7 +54,7 @@
       ansible.posix.authorized_key:
         user: "{{ vpn_user }}"
         state: present
-        key: "{{ lookup('file', '{{ ssh_key_dir }}/{{ vpn_user }}_id_rsa.pub') }}"
+        key: "{{ lookup('file', ssh_key_dir + '/' + vpn_user + '_id_rsa.pub') }}"
     - name: "VPN user permissions"
       ansible.builtin.copy:
         dest: "/etc/sudoers.d/{{ vpn_user }}"

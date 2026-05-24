@@ -96,16 +96,23 @@
         owner: root
         group: root
       when: ansible_facts['os_family'] == "RedHat"
+    - name: Create amnezia dir
+      ansible.builtin.file:
+        path: /opt/amnezia
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
     - name: Download setup_host_firewall.sh
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/amnezia-vpn/amnezia-client/refs/heads/dev/client/server_scripts/setup_host_firewall.sh
-        dest: /opt/amezia/setup_host_firewall.sh
+        dest: /opt/amnezia/setup_host_firewall.sh
         mode: 0744
         owner: root
         group: root
     - name: Add shebang to setup_host_firewall.sh
       ansible.builtin.lineinfile:
-        path: /opt/amezia/setup_host_firewall.sh
+        path: /opt/amnezia/setup_host_firewall.sh
         line: "#!/bin/bash"
         insertbefore: BOF
         mode: 0744
@@ -120,7 +127,6 @@
         group: root
       notify:
         - restart_systemd
-        - restart_setup_host_firewall
     - name: Create systemd unit for run setup_host_firewall.sh
       ansible.builtin.systemd:
         name: setup-host-firewall.service
@@ -136,7 +142,7 @@
       ansible.builtin.service:
         daemon_reload: true
       listen: restart_systemd
-    - name: Restart setup-host-firewallapache
+    - name: Restart setup-host-firewall
       ansible.builtin.service:
         name: setup-host-firewall.service
         state: restarted

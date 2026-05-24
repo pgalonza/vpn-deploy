@@ -1,0 +1,9 @@
+- name: Initial VPN server configuration
+  hosts: all
+  become: true
+  collections:
+    - pgalonza.linux
+  roles:
+    - prepare
+  vars_files:
+    - ./project-vars.yml

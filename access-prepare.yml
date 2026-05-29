@@ -1,4 +1,4 @@
-- name: Initial VPN server configuration
+- name: Initial VPN access configuration
   hosts: all
   become: true
   collections:

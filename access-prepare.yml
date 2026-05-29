@@ -7,3 +7,9 @@
     - prepare
   vars_files:
     - ./project-vars.yml
+  pre_tasks:
+    - name: Disable Firewalld
+      ansible.builtin.systemd:
+        state: stopped
+        name: firewalld
+        enabled: false

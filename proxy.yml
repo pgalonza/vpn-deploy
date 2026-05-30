@@ -1,0 +1,39 @@
+- name: Proxy configuration
+  hosts: all
+  become: true
+  vars_files:
+    - ./project-vars.yml
+  tasks:
+    - name: Create socks-proxy dir
+      ansible.builtin.file:
+        path: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
+        state: directory
+        owner: "{{ vpn_user }}"
+        group: "{{ vpn_user }}"
+    - name: Copy socks-proxy compose
+      ansible.builtin.template:
+        src: socks-proxy/docker-compose.yml.j2
+        dest: "/home/{{ vpn_user }}/3proxy/docker-compose.yml"
+        owner: "{{ vpn_user }}"
+        group: "{{ vpn_user }}"
+        mode: 0600
+    - name: Pull images
+      community.docker.docker_compose_v2_pull:
+        project_src: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
+    - name: Start services
+      community.docker.docker_compose_v2:
+        project_src: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
+    - name: Install pip3
+      ansible.builtin.dnf:
+        name: "python3-pip-{{ pip_packages_version }}"
+        state: present
+    - name: Install requests
+      become_user: "{{ vpn_user }}"
+      ansible.builtin.pip:
+        name: "requests=={{ requests_version }}"
+    - name: Add a container to a network, leaving existing containers connected
+      become_user: "{{ vpn_user }}"
+      community.docker.docker_network:
+        name: "{{  socks_proxy_dir }}_socks-proxy"
+        connected: "{{ vpn_container_name }}"
+        appends: true

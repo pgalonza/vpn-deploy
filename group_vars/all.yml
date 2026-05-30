@@ -1,0 +1,8 @@
+socks_proxy_version: 0.9.6
+socks_proxy_port: 8080
+socks_proxy_users:
+  - { name: socks, password: socks }
+requests_version: 2.32.5
+pip_packages_version: 21.3.1
+vpn_container_name: vpn
+socks_proxy_dir: socks-proxy

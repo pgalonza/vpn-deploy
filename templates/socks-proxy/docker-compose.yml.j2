@@ -1,0 +1,28 @@
+services:
+  socks_proxy:
+    container_name: socks-proxy
+    image: 3proxy/3proxy:{{ socks_proxy_version }}
+    restart: always
+    ports:
+      - '127.0.0.1:{{ socks_proxy_port }}:{{ socks_proxy_port }}'
+    configs:
+      - source: app_config
+        target: /etc/3proxy/3proxy.cfg
+    networks:
+      - socks-proxy
+
+configs:
+  app_config:
+    content: |
+      #!/bin/3proxy
+      config /etc/3proxy/3proxy.cfg
+      timeouts 1 5 30 60 180 1800 15 60
+      log
+      socks -p{{ socks_proxy_port }}
+      auth strong
+{% for user in socks_proxy_users %}
+      users {{ user.name }}:CL:{{ user.password }}
+{% endfor %}
+
+networks:
+  socks-proxy:

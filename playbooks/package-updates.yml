@@ -1,0 +1,16 @@
+---
+# =============================================================================
+# Playbook: Package updates
+# =============================================================================
+# Updates system packages on the VPN server.
+# Runs the package_updates role from the pgalonza.linux collection.
+# =============================================================================
+- name: Package updates
+  hosts: all
+  become: true
+  collections:
+    - pgalonza.linux
+  roles:
+    - package_updates
+  vars_files:
+    - ../vars/project-vars.yml

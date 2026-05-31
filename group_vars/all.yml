@@ -1,8 +1,20 @@
+# =============================================================================
+# Common variables for vpn-deploy
+# =============================================================================
+# Sensitive data is stored in group_vars/vault.yml (Ansible Vault).
+# =============================================================================
+
+# --- SOCKS5 Proxy (3proxy) ---
 socks_proxy_version: 0.9.6
 socks_proxy_port: 8080
-socks_proxy_users:
-  - { name: socks, password: socks }
-requests_version: 2.32.5
-pip_packages_version: 21.3.1
-vpn_container_name: vpn
 socks_proxy_dir: socks-proxy
+
+# Reference to encrypted vault data
+socks_proxy_users: "{{ vault_socks_proxy_users }}"
+
+# --- VPN Container ---
+vpn_container_name: vpn
+
+# --- Package Version Pinning ---
+pip_packages_version: 21.3.1
+requests_version: 2.32.5

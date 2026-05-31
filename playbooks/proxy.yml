@@ -1,39 +1,56 @@
+---
+# =============================================================================
+# Playbook: SOCKS5 Proxy deployment (3proxy)
+# =============================================================================
+# Deploys a 3proxy container in Docker and connects it to the VPN network.
+# =============================================================================
 - name: Proxy configuration
   hosts: all
   become: true
   vars_files:
-    - ./project-vars.yml
+    - ../vars/project-vars.yml
+
   tasks:
-    - name: Create socks-proxy dir
+    # --- Directory and Configuration ---
+    - name: Create SOCKS5 proxy directory
       ansible.builtin.file:
         path: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
         state: directory
         owner: "{{ vpn_user }}"
         group: "{{ vpn_user }}"
-    - name: Copy socks-proxy compose
+
+    - name: Deploy docker-compose.yml for 3proxy
       ansible.builtin.template:
-        src: socks-proxy/docker-compose.yml.j2
+        src: ../templates/socks-proxy/docker-compose.yml.j2
         dest: "/home/{{ vpn_user }}/3proxy/docker-compose.yml"
         owner: "{{ vpn_user }}"
         group: "{{ vpn_user }}"
         mode: 0600
-    - name: Pull images
+
+    # --- Docker Compose ---
+    - name: Pull 3proxy Docker images
       community.docker.docker_compose_v2_pull:
         project_src: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
-    - name: Start services
+
+    - name: Start 3proxy services
       community.docker.docker_compose_v2:
         project_src: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
-    - name: Install pip3
+
+    # --- Python Dependencies ---
+    - name: Install pip3 package
       ansible.builtin.dnf:
         name: "python3-pip-{{ pip_packages_version }}"
         state: present
-    - name: Install requests
+
+    - name: Install requests library for VPN user
       become_user: "{{ vpn_user }}"
       ansible.builtin.pip:
         name: "requests=={{ requests_version }}"
-    - name: Add a container to a network, leaving existing containers connected
+
+    # --- Network ---
+    - name: Connect VPN container to SOCKS5 proxy network
       become_user: "{{ vpn_user }}"
       community.docker.docker_network:
-        name: "{{  socks_proxy_dir }}_socks-proxy"
+        name: "{{ socks_proxy_dir }}_socks-proxy"
         connected: "{{ vpn_container_name }}"
         appends: true

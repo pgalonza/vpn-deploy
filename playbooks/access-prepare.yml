@@ -1,0 +1,22 @@
+---
+# =============================================================================
+# Playbook: VPN access configuration
+# =============================================================================
+# Configures access to the VPN server: disables Firewalld, applies the prepare role.
+# =============================================================================
+- name: Initial VPN access configuration
+  hosts: all
+  become: true
+  collections:
+    - pgalonza.linux
+  roles:
+    - prepare
+  vars_files:
+    - ../vars/project-vars.yml
+
+  pre_tasks:
+    - name: Disable Firewalld service
+      ansible.builtin.systemd:
+        state: stopped
+        name: firewalld
+        enabled: false

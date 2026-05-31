@@ -1,9 +1,0 @@
-- name: VPN server audit
-  hosts: all
-  become: true
-  collections:
-    - pgalonza.linux
-  roles:
-    - audit
-  vars_files:
-    - ./project-vars.yml

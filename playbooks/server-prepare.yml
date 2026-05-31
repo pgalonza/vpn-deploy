@@ -1,3 +1,10 @@
+---
+# =============================================================================
+# Playbook: Initial VPN server configuration
+# =============================================================================
+# Runs once on a fresh server.
+# Installs Docker, configures Amnezia VPN firewall, creates the VPN user.
+# =============================================================================
 - name: Initial VPN server configuration
   hosts: all
   become: true
@@ -7,7 +14,7 @@
     - docker
     - security
   vars_files:
-    - ./project-vars.yml
+    - ../vars/project-vars.yml
   vars:
     lock_packages:
       - "docker-{{ docker_edition }}"
@@ -16,31 +23,44 @@
       - "containerd.io"
       - "docker-buildx-plugin"
       - "crowdsec-firewall-bouncer-{{ crowdsec_firewall_bouncer_type }}"
+
+  # ---------------------------------------------------------------------------
+  # PRE-TASKS: System preparation
+  # ---------------------------------------------------------------------------
   pre_tasks:
-    - name: Install dnf-plugin-versionlock
+    - name: Install dnf-plugin-versionlock (RedHat)
       ansible.builtin.dnf:
         name: dnf-plugin-versionlock
         state: present
       when: ansible_facts['os_family'] == "RedHat"
-    - name: Remove lock for packages
+
+    - name: Remove existing version locks for packages
       community.general.dnf_versionlock:
         name: "{{ lock_packages }}"
         state: absent
       when: ansible_facts['os_family'] == "RedHat"
+
+  # ---------------------------------------------------------------------------
+  # TASKS: Server setup
+  # ---------------------------------------------------------------------------
   tasks:
-    - name: Generate an OpenSSH keypair
+    # --- SSH Keys ---
+    - name: Generate Ed25519 SSH keypair for VPN user
       become: false
       community.crypto.openssh_keypair:
         path: "{{ ssh_key_dir }}/{{ vpn_user }}_id_rsa"
         type: ed25519
       delegate_to: localhost
       run_once: true
-    - name: Add sudo group
+
+    # --- User and Group ---
+    - name: Create sudo group
       ansible.builtin.group:
         name: sudo
         state: present
         system: true
-    - name: Add the VPN user
+
+    - name: Create VPN system user with sudo and docker groups
       ansible.builtin.user:
         name: "{{ vpn_user }}"
         comment: VPN user
@@ -50,12 +70,14 @@
         groups:
           - sudo
           - docker
-    - name: Install VPN user ssh key
+
+    - name: Install SSH public key for VPN user
       ansible.posix.authorized_key:
         user: "{{ vpn_user }}"
         state: present
         key: "{{ lookup('file', ssh_key_dir + '/' + vpn_user + '_id_rsa.pub') }}"
-    - name: "VPN user permissions"
+
+    - name: Grant passwordless sudo to VPN user
       ansible.builtin.copy:
         dest: "/etc/sudoers.d/{{ vpn_user }}"
         content: "{{ vpn_user }} ALL=(ALL) NOPASSWD:ALL\n"
@@ -63,29 +85,17 @@
         group: root
         mode: "0600"
         validate: "/usr/sbin/visudo --check --file=%s"
-    # - name: Create directory modules-load.d
-    #   ansible.builtin.file:
-    #     path: /etc/modules-load.d
-    #     state: directory
-    #     mode: 0755
-    #     owner: root
-    #     group: root
-    # - name: Add iptables module to load at boot
-    #   ansible.builtin.lineinfile:
-    #     path: /etc/modules-load.d/ip_tables.conf
-    #     line: ip_tables
-    #     create: true
-    #     mode: 0644
-    #     owner: root
-    #     group: root
-    - name: Create directory docker.service.d
+
+    # --- Docker + nftables ---
+    - name: Create docker systemd override directory
       ansible.builtin.file:
         path: /etc/systemd/system/docker.service.d/
         state: directory
         mode: 0755
         owner: root
         group: root
-    - name: Configure docker to use nftables
+
+    - name: Configure Docker to depend on nftables (RedHat)
       ansible.builtin.copy:
         dest: /etc/systemd/system/docker.service.d/override.conf
         content: |
@@ -96,20 +106,24 @@
         owner: root
         group: root
       when: ansible_facts['os_family'] == "RedHat"
-    - name: Create amnezia dir
+
+    # --- Amnezia VPN Firewall ---
+    - name: Create Amnezia directory
       ansible.builtin.file:
         path: /opt/amnezia
         state: directory
         mode: 0755
         owner: root
         group: root
-    - name: Download setup_host_firewall.sh
+
+    - name: Download Amnezia setup_host_firewall.sh script
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/amnezia-vpn/amnezia-client/refs/heads/dev/client/server_scripts/setup_host_firewall.sh
         dest: /opt/amnezia/setup_host_firewall.sh
         mode: 0744
         owner: root
         group: root
+
     - name: Add shebang to setup_host_firewall.sh
       ansible.builtin.lineinfile:
         path: /opt/amnezia/setup_host_firewall.sh
@@ -118,7 +132,8 @@
         mode: 0744
         owner: root
         group: root
-    - name: Copy systemd unit for run setup_host_firewall.sh
+
+    - name: Deploy systemd unit for host firewall setup
       ansible.builtin.copy:
         src: setup-host-firewall.service
         dest: /etc/systemd/system/setup-host-firewall.service
@@ -127,22 +142,30 @@
         group: root
       notify:
         - restart_systemd
-    - name: Create systemd unit for run setup_host_firewall.sh
+
+    - name: Enable and start host firewall service
       ansible.builtin.systemd:
         name: setup-host-firewall.service
         state: started
         enabled: true
-    - name: Add lock for packages
+
+    # --- Package Version Pinning ---
+    - name: Lock package versions (RedHat)
       community.general.dnf_versionlock:
         name: "{{ lock_packages }}"
         state: present
       when: ansible_facts['os_family'] == "RedHat"
+
+  # ---------------------------------------------------------------------------
+  # HANDLERS
+  # ---------------------------------------------------------------------------
   handlers:
-    - name: Systemd reload daemon
+    - name: Reload systemd daemon
       ansible.builtin.service:
         daemon_reload: true
       listen: restart_systemd
-    - name: Restart setup-host-firewall
+
+    - name: Restart setup-host-firewall service
       ansible.builtin.service:
         name: setup-host-firewall.service
         state: restarted

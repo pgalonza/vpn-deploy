@@ -1,0 +1,44 @@
+# =============================================================================
+# Project variables for vpn-deploy
+# =============================================================================
+# Copy this file to vars/project-vars.yml and fill in your values.
+# vars/project-vars.yml is in .gitignore — it won't be committed.
+# =============================================================================
+
+# --- VPN User ---
+# System user that will run the VPN
+vpn_user: vpn
+
+# --- SSH Keys ---
+# Directory for generated SSH keys (on the local machine)
+ssh_key_dir: ~/.ssh
+
+# --- Docker ---
+# Docker edition: "ce" (Community Edition) or "ee" (Enterprise Edition)
+docker_edition: ce
+
+# --- CrowdSec ---
+# CrowdSec bouncer type: "iptables" or "nftables"
+crowdsec_firewall_bouncer_type: nftables
+
+# --- SOCKS5 Proxy (3proxy) ---
+# 3proxy image version
+socks_proxy_version: 0.9.6
+# SOCKS5 proxy port (listens on localhost)
+socks_proxy_port: 8080
+# Directory for the proxy docker-compose (in the user's home)
+socks_proxy_dir: socks-proxy
+# SOCKS5 proxy users (name and password in plain text)
+# Use Ansible Vault for production environments
+socks_proxy_users:
+  - { name: socks, password: socks }
+
+# --- VPN Container ---
+# Amnezia VPN container name (must match the name in the Amnezia docker-compose)
+vpn_container_name: vpn
+
+# --- Package Version Pinning ---
+# python3-pip version
+pip_packages_version: 21.3.1
+# requests library version
+requests_version: 2.32.5

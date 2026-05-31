@@ -1,0 +1,20 @@
+# =============================================================================
+# Host inventory for vpn-deploy
+# =============================================================================
+# Copy this file to inventory/production.yml and fill in your data.
+# inventory/production.yml is in .gitignore — it won't be committed.
+# =============================================================================
+all:
+  hosts:
+    your-vps-server:
+      # VPS IP address or domain name
+      ansible_host: 192.168.1.1
+      # SSH user (usually root or a user with sudo)
+      ansible_user: root
+      # SSH port (default 22)
+      ansible_port: 22
+      # Path to the SSH private key
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+  vars:
+    # Variables common to all hosts (can be overridden in group_vars)
+    ansible_python_interpreter: /usr/bin/python3

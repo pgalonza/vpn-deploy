@@ -1,0 +1,11 @@
+# =============================================================================
+# Encrypted secrets (Ansible Vault)
+# =============================================================================
+# This file is encrypted with ansible-vault.
+# To edit: ansible-vault edit group_vars/vault.yml
+# To run playbooks: ansible-playbook -i inventory/production.yml playbooks/playbook.yml --ask-vault-pass
+# =============================================================================
+
+# SOCKS5 proxy users (name and password)
+vault_socks_proxy_users:
+  - { name: socks, password: socks }

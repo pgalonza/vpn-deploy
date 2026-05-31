@@ -31,7 +31,8 @@ flowchart TD
         D[server-prepare.yml]
         E[access-prepare.yml]
         F[proxy.yml]
-        G[server-audit.yml]
+        G[package-updates.yml]
+        H[server-audit.yml]
     end
 
     D -->|Configure| H[VPS Server]
@@ -44,7 +45,9 @@ flowchart TD
     F -->|Deploy| M[SOCKS5 Proxy 3proxy]
     M -->|Connect| N[VPN Container]
 
-    G -->|Check| O[Security Audit]
+    G -->|Update| O[System Packages]
+
+    H -->|Check| P[Security Audit]
 
     style A fill:#4a90d9,color:#fff
     style B fill:#2da44e,color:#fff
@@ -98,6 +101,7 @@ pip install -r requirements.txt
 
 # Install Ansible collections
 ansible-galaxy install -r requirements.yml
+ansible-galaxy install -r ~/.ansible/collections/ansible_collections/pgalonza/linux/requirements.yml
 ```
 
 ### 3. Configure Inventory
@@ -160,7 +164,10 @@ ansible-playbook -i inventory/production.yml playbooks/access-prepare.yml
 # Step 3: Deploy SOCKS5 proxy
 ansible-playbook -i inventory/production.yml playbooks/proxy.yml
 
-# Step 4 (optional): Audit the server
+# Step 4 (optional): Update system packages
+ansible-playbook -i inventory/production.yml playbooks/package-updates.yml
+
+# Step 5 (optional): Audit the server
 ansible-playbook -i inventory/production.yml playbooks/server-audit.yml
 ```
 
@@ -204,6 +211,14 @@ SOCKS5 proxy (3proxy) deployment.
 - Deploys the 3proxy container with a templated configuration
 - Installs Python dependencies (`requests`)
 - Connects the VPN container to the proxy network
+
+### [`package-updates.yml`](playbooks/package-updates.yml)
+
+System package updates for the VPN server.
+
+**What it does:**
+- Updates all system packages to their latest versions
+- Applies the `package_updates` role from the `pgalonza.linux` collection
 
 ### [`server-audit.yml`](playbooks/server-audit.yml)
 
@@ -287,6 +302,7 @@ vpn-deploy/
 │       └── inventory.yml         # Inventory example
 ├── playbooks/
 │   ├── access-prepare.yml        # VPN access configuration
+│   ├── package-updates.yml       # System package updates
 │   ├── proxy.yml                 # SOCKS5 proxy deployment
 │   ├── server-audit.yml          # Server audit
 │   └── server-prepare.yml        # Server preparation

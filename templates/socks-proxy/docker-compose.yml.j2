@@ -9,7 +9,8 @@ services:
       - source: app_config
         target: /etc/3proxy/3proxy.cfg
     networks:
-      - socks-proxy
+      socks-proxy:
+        ipv4_address: 172.31.0.14
 
 configs:
   app_config:
@@ -26,3 +27,7 @@ configs:
 
 networks:
   socks-proxy:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.31.0.8/29

@@ -13,6 +13,7 @@
   roles:
     - docker
     - security
+    - bash_profile
   vars_files:
     - ../vars/project-vars.yml
   vars:

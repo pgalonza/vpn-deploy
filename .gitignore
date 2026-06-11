@@ -1,3 +1,5 @@
-project-vars.yml
-inventory.yml
-audit
+/vars/project-vars.yml
+/inventory.yml
+/audit
+/jwt_params.json
+/playbooks/tmp-*

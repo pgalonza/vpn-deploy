@@ -8,12 +8,11 @@
 - name: Initial VPN server configuration
   hosts: all
   become: true
-  collections:
-    - pgalonza.linux
   roles:
-    - docker
-    - security
-    - bash_profile
+    - pgalonza.linux.docker
+    - pgalonza.linux.security
+    - pgalonza.linux.monitoring
+    - pgalonza.linux.bash_profile
   vars_files:
     - ../vars/project-vars.yml
   vars:

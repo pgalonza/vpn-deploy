@@ -3,8 +3,7 @@ services:
     container_name: socks-proxy
     image: 3proxy/3proxy:{{ socks_proxy_version }}
     restart: always
-    ports:
-      - '127.0.0.1:{{ socks_proxy_port }}:{{ socks_proxy_port }}'
+    command: ["/bin/3proxy", "/etc/3proxy/3proxy.cfg"]
     configs:
       - source: app_config
         target: /etc/3proxy/3proxy.cfg
@@ -15,15 +14,16 @@ services:
 configs:
   app_config:
     content: |
-      #!/bin/3proxy
-      config /etc/3proxy/3proxy.cfg
       timeouts 1 5 30 60 180 1800 15 60
       log
-      socks -p{{ socks_proxy_port }}
       auth strong
 {% for user in socks_proxy_users %}
       users {{ user.name }}:CL:{{ user.password }}
+      allow {{ user.name }} {{ user.sourcelist|default('*') }} {{ user.targetlist|default('*') }} {{ user.targetport|default('*') }} {{ user.operation|default('*') }} {{ user.weekdayslist|default('*') }} {{ user.timeperiodslist|default('*') }}
 {% endfor %}
+      deny *
+      flush
+      socks -p{{ socks_proxy_port }}
 
 networks:
   socks-proxy:

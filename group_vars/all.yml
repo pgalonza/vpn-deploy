@@ -18,3 +18,16 @@ vpn_container_name: vpn
 # --- Package Version Pinning ---
 pip_packages_version: 21.3.1
 requests_version: 2.32.5
+
+# --- Docker Daemon Options ---
+docker_daemon_options:
+  metrics-addr: 172.31.0.17:9323
+
+# --- Yandex Unified Agent ---
+yua_labels:
+  - inventory_hostname: "{{ inventory_hostname }}"
+  - role: vpn
+  - type: vps
+yua_docker_metrics:
+  url: http://172.31.0.17:9323/metrics
+  enabled: true

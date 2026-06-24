@@ -23,14 +23,14 @@ crowdsec_firewall_bouncer_type: nftables
 
 # --- SOCKS5 Proxy (3proxy) ---
 # 3proxy image version
-socks_proxy_version: 0.9.6
+proxy_version: 0.9.6
 # SOCKS5 proxy port (listens on localhost)
-socks_proxy_port: 8080
+proxy_socks_port: 8080
 # Directory for the proxy docker-compose (in the user's home)
-socks_proxy_dir: socks-proxy
+proxy_socks_dir: socks-proxy
 # SOCKS5 proxy users (name and password in plain text)
 # Use Ansible Vault for production environments
-socks_proxy_users:
+proxy_users:
   - { name: socks, password: socks }
 
 # --- VPN Container ---

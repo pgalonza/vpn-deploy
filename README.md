@@ -240,10 +240,10 @@ Server security audit.
 | `ssh_key_dir` | `~/.ssh` | SSH key directory |
 | `docker_edition` | `ce` | Docker edition |
 | `crowdsec_firewall_bouncer_type` | `nftables` | CrowdSec bouncer type |
-| `socks_proxy_version` | `0.9.6` | 3proxy image version |
-| `socks_proxy_port` | `8080` | SOCKS5 proxy port |
-| `socks_proxy_dir` | `socks-proxy` | docker-compose directory |
-| `socks_proxy_users` | — | Proxy users (name/password) |
+| `proxy_version` | `0.9.6` | 3proxy image version |
+| `proxy_socks_port` | `8080` | SOCKS5 proxy port |
+| `proxy_socks_dir` | `socks-proxy` | docker-compose directory |
+| `proxy_users` | — | Proxy users (name/password) |
 | `vpn_container_name` | `vpn` | Amnezia container name |
 | `pip_packages_version` | `21.3.1` | python3-pip version |
 | `requests_version` | `2.32.5` | requests library version |
@@ -252,7 +252,7 @@ Server security audit.
 
 | Variable | Description |
 |---|---|
-| `vault_socks_proxy_users` | SOCKS5 proxy users list (encrypted) |
+| `vault_proxy_users` | SOCKS5 proxy users list (encrypted) |
 
 ---
 

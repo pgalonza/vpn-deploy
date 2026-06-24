@@ -14,7 +14,7 @@
     # --- Directory and Configuration ---
     - name: Create SOCKS5 proxy directory
       ansible.builtin.file:
-        path: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
+        path: "/home/{{ vpn_user }}/{{ proxy_socks_dir }}"
         state: directory
         owner: "{{ vpn_user }}"
         group: "{{ vpn_user }}"
@@ -30,11 +30,11 @@
     # --- Docker Compose ---
     - name: Pull 3proxy Docker images
       community.docker.docker_compose_v2_pull:
-        project_src: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
+        project_src: "/home/{{ vpn_user }}/{{ proxy_socks_dir }}"
 
     - name: Start 3proxy services
       community.docker.docker_compose_v2:
-        project_src: "/home/{{ vpn_user }}/{{ socks_proxy_dir }}"
+        project_src: "/home/{{ vpn_user }}/{{ proxy_socks_dir }}"
 
     # --- Python Dependencies ---
     - name: Install pip3 package
@@ -51,6 +51,6 @@
     - name: Connect VPN container to SOCKS5 proxy network
       become_user: "{{ vpn_user }}"
       community.docker.docker_network:
-        name: "{{ socks_proxy_dir }}_socks-proxy"
+        name: "{{ proxy_socks_dir }}_socks-proxy"
         connected: "{{ vpn_container_name }}"
         appends: true

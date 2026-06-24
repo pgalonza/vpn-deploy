@@ -1,7 +1,7 @@
 services:
   socks_proxy:
     container_name: socks-proxy
-    image: 3proxy/3proxy:{{ socks_proxy_version }}
+    image: 3proxy/3proxy:{{ proxy_version }}
     restart: always
     command: ["/bin/3proxy", "/etc/3proxy/3proxy.cfg"]
     configs:
@@ -17,13 +17,14 @@ configs:
       timeouts 1 5 30 60 180 1800 15 60
       log
       auth strong
-{% for user in socks_proxy_users %}
+{% for user in proxy_users %}
       users {{ user.name }}:CL:{{ user.password }}
       allow {{ user.name }} {{ user.sourcelist|default('*') }} {{ user.targetlist|default('*') }} {{ user.targetport|default('*') }} {{ user.operation|default('*') }} {{ user.weekdayslist|default('*') }} {{ user.timeperiodslist|default('*') }}
 {% endfor %}
       deny *
       flush
-      socks -p{{ socks_proxy_port }}
+      socks -p{{ proxy_socks_port }}
+      proxy -p{{ http_proxy_port }}
 
 networks:
   socks-proxy:

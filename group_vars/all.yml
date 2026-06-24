@@ -5,12 +5,12 @@
 # =============================================================================
 
 # --- SOCKS5 Proxy (3proxy) ---
-socks_proxy_version: 0.9.6
-socks_proxy_port: 8080
-socks_proxy_dir: socks-proxy
+proxy_version: 0.9.6
+proxy_socks_port: 8080
+proxy_socks_dir: socks-proxy
 
 # Reference to encrypted vault data
-socks_proxy_users: "{{ vault_socks_proxy_users }}"
+proxy_users: "{{ vault_proxy_users }}"
 
 # --- VPN Container ---
 vpn_container_name: vpn

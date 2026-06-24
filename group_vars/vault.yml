@@ -7,6 +7,6 @@
 # =============================================================================
 
 # SOCKS5 proxy users (name and password)
-vault_socks_proxy_users:
+vault_proxy_users:
   - name: socks
     password: socks

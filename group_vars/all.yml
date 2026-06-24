@@ -6,8 +6,9 @@
 
 # --- SOCKS5 Proxy (3proxy) ---
 proxy_version: 0.9.6
-proxy_socks_port: 8080
-proxy_socks_dir: socks-proxy
+proxy_socks_port: 1080
+proxy_http_port: 3128
+proxy_socks_dir: proxy
 
 # Reference to encrypted vault data
 proxy_users: "{{ vault_proxy_users }}"

@@ -24,7 +24,7 @@ configs:
       deny *
       flush
       socks -p{{ proxy_socks_port }}
-      proxy -p{{ http_proxy_port }}
+      proxy -p{{ proxy_http_port }}
 
 networks:
   socks-proxy:

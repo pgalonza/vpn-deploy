@@ -22,7 +22,7 @@ requests_version: 2.32.5
 
 # --- Docker Daemon Options ---
 docker_daemon_options:
-  metrics-addr: 172.31.0.17:9323
+  metrics-addr: localhost:9323
 
 # --- Yandex Unified Agent ---
 yua_labels:
@@ -30,5 +30,5 @@ yua_labels:
   - role: vpn
   - type: vps
 yua_docker_metrics:
-  url: http://172.31.0.17:9323/metrics
+  url: http://localhost:9323/metrics
   enabled: true

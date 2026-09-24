@@ -15,14 +15,6 @@
     - pgalonza.linux.bash_profile
   vars_files:
     - ../vars/project-vars.yml
-  vars:
-    lock_packages:
-      - "docker-{{ docker_edition }}"
-      - "docker-{{ docker_edition }}"
-      - "docker-{{ docker_edition }}-rootless-extras"
-      - "containerd.io"
-      - "docker-buildx-plugin"
-      - "crowdsec-firewall-bouncer-{{ crowdsec_firewall_bouncer_type }}"
 
   # ---------------------------------------------------------------------------
   # PRE-TASKS: System preparation
@@ -86,26 +78,26 @@
         mode: "0600"
         validate: "/usr/sbin/visudo --check --file=%s"
 
-    # --- Docker + nftables ---
-    - name: Create docker systemd override directory
-      ansible.builtin.file:
-        path: /etc/systemd/system/docker.service.d/
-        state: directory
-        mode: 0755
-        owner: root
-        group: root
+    # # --- Docker + nftables ---
+    # - name: Create docker systemd override directory
+    #   ansible.builtin.file:
+    #     path: /etc/systemd/system/docker.service.d/
+    #     state: directory
+    #     mode: 0755
+    #     owner: root
+    #     group: root
 
-    - name: Configure Docker to depend on nftables (RedHat)
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/docker.service.d/override.conf
-        content: |
-          [Unit]
-          PartOf=nftables.service
-          After=nftables.service
-        mode: 0644
-        owner: root
-        group: root
-      when: ansible_facts['os_family'] == "RedHat"
+    # - name: Configure Docker to depend on nftables (RedHat)
+    #   ansible.builtin.copy:
+    #     dest: /etc/systemd/system/docker.service.d/override.conf
+    #     content: |
+    #       [Unit]
+    #       PartOf=nftables.service
+    #       After=nftables.service
+    #     mode: 0644
+    #     owner: root
+    #     group: root
+    #   when: ansible_facts['os_family'] == "RedHat"
 
     # --- Amnezia VPN Firewall ---
     - name: Create Amnezia directory

@@ -32,3 +32,9 @@ yua_labels:
 yua_docker_metrics:
   url: http://localhost:9323/metrics
   enabled: true
+lock_packages:
+  - "docker-{{ docker_edition }}"
+  - "docker-{{ docker_edition }}"
+  - "docker-{{ docker_edition }}-rootless-extras"
+  - "containerd.io"
+  - "crowdsec-firewall-bouncer-{{ crowdsec_firewall_bouncer_type }}"
